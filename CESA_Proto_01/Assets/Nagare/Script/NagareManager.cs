@@ -10,6 +10,7 @@ public class NagareManager : MonoBehaviour
     public float margin = 5.0f;
 
     //
+
     private Vector3 preMousePosition;
     private Vector3 nowMousePosition;
 
@@ -51,19 +52,26 @@ public class NagareManager : MonoBehaviour
         Vector3 worldMousePosition = Camera.main.ScreenToWorldPoint(nowMousePosition);
 
         Vector3 distance = worldMousePosition - readyList[readyList.Count - 1].transform.position;
+
         if (distance.sqrMagnitude > margin * margin)
         {
-            GameObject nagare = (GameObject)Instantiate(
-                nagarePrefab,
-                Camera.main.ScreenToWorldPoint(nowMousePosition),
-                Quaternion.identity);
+            int num = (int)(distance.sqrMagnitude / (margin * margin));
+            
+            distance /= num;
+            for (int i = 0; i < num; i++)
+            {
+                GameObject nagare = (GameObject)Instantiate(
+                    nagarePrefab,
+                    readyList[readyList.Count - 1].transform.position + (distance.normalized),
+                    Quaternion.identity);
 
-            readyList.Add(nagare);
+                readyList.Add(nagare);
 
-            Vector3 direction = Vector3.zero;
-            direction = readyList[readyList.Count - 1].transform.position - readyList[readyList.Count - 2].transform.position;
-            readyList[readyList.Count - 2].GetComponent<Nagare>().Create(direction.normalized, 1.0f + readyList.Count * 0.025f);
-            readyList[readyList.Count - 1].GetComponent<Nagare>().Create(direction.normalized, 1.0f + readyList.Count * 0.025f);
+                Vector3 direction = Vector3.zero;
+                direction = readyList[readyList.Count - 1].transform.position - readyList[readyList.Count - 2].transform.position;
+                readyList[readyList.Count - 2].GetComponent<Nagare>().Create(direction.normalized, 1.0f + readyList.Count * 0.015f);
+                readyList[readyList.Count - 1].GetComponent<Nagare>().Create(direction.normalized, 1.0f + readyList.Count * 0.015f);
+            }
         }
     }
 

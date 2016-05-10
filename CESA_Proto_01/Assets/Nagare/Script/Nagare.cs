@@ -3,15 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-namespace NagareNS
-{
-    struct NagarePoint
-    {
-        Vector3 position;
-        Vector3 direction;
-    }
-}
-
 public class Nagare : MonoBehaviour
 {
     enum State
@@ -44,12 +35,17 @@ public class Nagare : MonoBehaviour
         nagareScalar = setPower;        //大きさ
         lifeTime *= setPower;           //寿命（強さ２倍なら寿命二倍）
         //lifeTime *= 1 - setPower;   //強さ２倍なら寿命半分
+
+        GetComponent<Renderer>().material.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+        GetComponent<SphereCollider>().enabled = false;
     }
 
     //初期化完了（流れを引き終わり、流れ始める）
     public void Activate()
     {
         state = State.ON;
+        GetComponent<Renderer>().material.color = new Color(0.25f, 0.25f, 0.75f, 0.5f);
+        GetComponent<SphereCollider>().enabled = true;
     }
 
     // Update is called once per frame
