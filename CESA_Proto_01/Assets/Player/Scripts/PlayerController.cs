@@ -29,7 +29,6 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
 
-
     }
 
     // Update is called once per frame
@@ -51,11 +50,35 @@ public class PlayerController : MonoBehaviour
         //        break;
         //}
 
-        //流れマネージャー
-        //CommandNagareManager();
+        CommandNagareManager(); //流れマネージャー更新
+    }
 
-        if (Input.touchCount > 0)
-            print(Input.touchCount);
+    //
+    //流れマネージャーに命令
+    //
+    void CommandNagareManager()
+    {
+        //流れ生成開始（タップした始め＆＆コントローラ系の場所じゃない）
+        if (Input.GetMouseButtonDown(0) && CheckTapPoint())
+        {
+            creatingFlg = true;
+            nagareManager.Create();
+            return;
+        }
+
+        //流れ生成中（タップ地点が正当＆＆スワイプ）
+        if (creatingFlg && Input.GetMouseButton(0))
+        {
+            nagareManager.Creating();
+        }
+
+        //流れ生成
+        if (Input.GetMouseButtonUp(0))
+        {
+            creatingFlg = false;
+            nagareManager.Activate();
+            return;
+        }
     }
 
     //
@@ -119,33 +142,7 @@ public class PlayerController : MonoBehaviour
         state = State.NEUTRAL;
     }
 
-    //
-    //流れマネージャーに命令
-    //
-    void CommandNagareManager()
-    {
-        //流れ生成開始（タップした始め＆＆コントローラ系の場所じゃない）
-        //if (Input.GetMouseButtonDown(0) && CheckTapPoint()) 
-        //if ( && CheckTapPoint()) 
-        //{
-        //    creatingFlg = true;
-        //    nagareManager.Create();
-        //    return;
-        //}
 
-        //流れ生成中（タップ地点が正当＆＆スワイプ）
-        if (creatingFlg && Input.GetMouseButton(0))
-        {
-            nagareManager.Creating();
-        }
-
-        //流れ生成
-        if (Input.GetMouseButtonUp(0))
-        {
-            nagareManager.Activate();
-            return;
-        }
-    }
 
 
     void OnTriggerStay(Collider other)

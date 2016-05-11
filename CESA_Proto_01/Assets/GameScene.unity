@@ -1095,8 +1095,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nagarePrefab: {fileID: 105744, guid: af883677ec0e1c94ba5fe3357b52f1a0, type: 2}
-  readyList: []
-  margin: 1
+  LimitNum: 4
+  LimitSampling: 64
+  Interval_Sampling: 1
 --- !u!4 &1559672041
 Transform:
   m_ObjectHideFlags: 0
