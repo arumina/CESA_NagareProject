@@ -4,10 +4,14 @@ using UnityStandardAssets.CrossPlatformInput;
 
 public class PlayerController : MonoBehaviour
 {
-    //public
+    //エディタ用
     public float moveSpeed = 0.5f;
     public float moveLimitX = 10.0f;
     public float moveLimitZ = 10.0f;
+    public float createTimeLimit = 3.0f;
+    //
+    public NagareManager nagareManager;
+
     //private
     private enum State
     {
@@ -19,22 +23,21 @@ public class PlayerController : MonoBehaviour
     private State state = State.DEFAULT;
     private Vector3 moveDirection = Vector3.zero;
     private float time = 0;
+    private float createTimer = 0;
     private bool creatingFlg = false;
 
     //
-    public NagareManager nagareManager;
-
-
     // Use this for initialization
+    //
     void Start()
     {
-
     }
 
+    //
     // Update is called once per frame
+    //
     void Update()
     {
-        ////
         //switch (state)
         //{
         //    case State.DEFAULT:
@@ -61,15 +64,25 @@ public class PlayerController : MonoBehaviour
         //流れ生成開始（タップした始め＆＆コントローラ系の場所じゃない）
         if (Input.GetMouseButtonDown(0) && CheckTapPoint())
         {
-            creatingFlg = true;
-            nagareManager.Create();
+            creatingFlg = nagareManager.StartCreating();    //成功：TRUE
+            createTimer = 0;
             return;
         }
 
         //流れ生成中（タップ地点が正当＆＆スワイプ）
-        if (creatingFlg && Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && creatingFlg) 
         {
-            nagareManager.Creating();
+            if (creatingFlg)
+            {
+                nagareManager.Creating();
+
+                //流れ生成時間制限カウント
+                //createTimer += Time.deltaTime;
+                //if (createTimer > createTimeLimit)
+                //{
+                //Debug.Log("!!! Create TimeOver  !!!");
+                //}
+            }
         }
 
         //流れ生成
@@ -77,6 +90,7 @@ public class PlayerController : MonoBehaviour
         {
             creatingFlg = false;
             nagareManager.Activate();
+            createTimer = 0;
             return;
         }
     }
@@ -85,7 +99,6 @@ public class PlayerController : MonoBehaviour
     void Move()
     {
         Vector3 movePosition = transform.position;
-        //Vector3 addForce = Vector3.zero;
         moveDirection.x = CrossPlatformInputManager.GetAxis("Horizontal");
         moveDirection.z = CrossPlatformInputManager.GetAxis("Vertical");
         movePosition += moveDirection * moveSpeed;
@@ -142,9 +155,6 @@ public class PlayerController : MonoBehaviour
         state = State.NEUTRAL;
     }
 
-
-
-
     void OnTriggerStay(Collider other)
     {
         if (other.tag == "Nagare")
@@ -155,11 +165,10 @@ public class PlayerController : MonoBehaviour
     }
 
 
-
     //
     //タップポイントがｺﾝﾄﾛｰﾗ系でないことを確認する。
     //
-    bool    CheckTapPoint()
+    bool CheckTapPoint()
     {
         if (true)
         {

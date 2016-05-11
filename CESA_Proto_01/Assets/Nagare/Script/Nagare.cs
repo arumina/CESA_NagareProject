@@ -24,11 +24,16 @@ public class Nagare : MonoBehaviour
     public Vector3 GetNagareVector() { return nagareVector = nagareDirection.normalized; }
     public State GetState() { return state; }
 
+    //
+    private float BUFFER_LIFETIME;
+
     // Use this for initialization
     void Start()
     {
-        gameObject.SetActive(false);
+        BUFFER_LIFETIME = lifeTime;
+
         state = State.OFF;
+        gameObject.SetActive(false);
 
     }
 
@@ -37,10 +42,11 @@ public class Nagare : MonoBehaviour
     {
         gameObject.SetActive(true);
         state = State.READY;
+
         transform.position = setPosition;
         nagareDirection = setDirection; //向き
         nagareScalar = setPower;        //大きさ
-        lifeTime *= setPower;           //寿命（強さ２倍なら寿命二倍）
+        lifeTime = BUFFER_LIFETIME * setPower;           //寿命（強さ２倍なら寿命二倍）
         //lifeTime *= 1 - setPower;   //強さ２倍なら寿命半分
 
         transform.position = new Vector3(transform.position.x, 0, transform.position.z);
@@ -48,14 +54,21 @@ public class Nagare : MonoBehaviour
         GetComponent<Renderer>().material.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
         GetComponent<SphereCollider>().enabled = false;
 
-        this.GetComponent<MeshRenderer>().enabled = true;
     }
 
     //初期化完了（流れを引き終わり、流れ始める）
     public void Activate()
     {
-        state = State.ON;
-        GetComponent<Renderer>().material.color = new Color(0.25f, 0.25f, 0.75f, 0.5f);
+        if (state == State.READY)
+        {
+            state = State.ON;
+            GetComponent<Renderer>().material.color = new Color(0.25f, 0.25f, 0.75f, 0.5f);
+            GetComponent<SphereCollider>().enabled = true;
+        }
+        else
+        {
+            state = State.OFF;
+        }
     }
 
     // Update is called once per frame
@@ -70,9 +83,8 @@ public class Nagare : MonoBehaviour
         if (LifeTimer() == false)
         {
             //自殺処理とか
-            gameObject.SetActive(false);
             state = State.OFF;
-            this.GetComponent<MeshRenderer>().enabled = false;
+            gameObject.SetActive(false);
             return;
         }
 
