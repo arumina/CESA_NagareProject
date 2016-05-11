@@ -7,71 +7,83 @@ public class Nagare : MonoBehaviour
 {
     public enum State
     {
-        OFF,
-        READY,
-        ON,
+        OFF,    //使われていない
+        READY,  //生成中
+        ON,     //生成完了＆流
     }
 
     //公開メンバ
-    public float lifeTime = 5.0f;
+    public float LIFETIME = 5.0f;   //寿命
+    public int index = 0;   //（本当はパブリックだめ）
+    public int number = 0;  //（本当はパブリックだめ）
     //非公開メンバ
     private State state = State.OFF;
-    private Vector3 nagareVector;
     private Vector3 nagareDirection;
+    private float lifeTimer;
+
     private float nagareScalar;
 
     //メソッド
-    public Vector3 GetNagareVector() { return nagareVector = nagareDirection.normalized; }
     public State GetState() { return state; }
+    public Vector3 GetNagareVector() { return nagareDirection.normalized; }
+
+    //定数もどき
 
     //
-    private float BUFFER_LIFETIME;
-
     // Use this for initialization
+    //
     void Start()
     {
-        BUFFER_LIFETIME = lifeTime;
-
-        state = State.OFF;
         gameObject.SetActive(false);
-
+        GetComponent<SphereCollider>().enabled = false; //衝突検知オフ
     }
 
+    //
     //生成処理（流れを引いている、まだ流れていない）
+    //
     public void Initialize(Vector3 setPosition, Vector3 setDirection, float setPower)
     {
-        gameObject.SetActive(true);
-        state = State.READY;
+        gameObject.SetActive(true); //アクティブ化
+        state = State.READY;        //状態
+        GetComponent<SphereCollider>().enabled = false; //衝突検知オフ
 
-        transform.position = setPosition;
-        nagareDirection = setDirection; //向き
-        nagareScalar = setPower;        //大きさ
-        lifeTime = BUFFER_LIFETIME * setPower;           //寿命（強さ２倍なら寿命二倍）
-        //lifeTime *= 1 - setPower;   //強さ２倍なら寿命半分
+        transform.position = setPosition;   //位置
+        transform.position = new Vector3(transform.position.x, 0, transform.position.z);    //これをいれないと例の稀によくあるY軸ワープ現象が発生する
+        nagareDirection = setDirection;     //向き
+        nagareScalar = setPower;            //力の大きさ
+        lifeTimer = LIFETIME * setPower;     //寿命
 
-        transform.position = new Vector3(transform.position.x, 0, transform.position.z);
-
+        //見た目
         GetComponent<Renderer>().material.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-        GetComponent<SphereCollider>().enabled = false;
-
     }
 
+    //
     //初期化完了（流れを引き終わり、流れ始める）
+    //
     public void Activate()
     {
         if (state == State.READY)
         {
-            state = State.ON;
+            state = State.ON;   //状態
+            GetComponent<SphereCollider>().enabled = true;  //衝突検知オン
+
+            //見た目
             GetComponent<Renderer>().material.color = new Color(0.25f, 0.25f, 0.75f, 0.5f);
-            GetComponent<SphereCollider>().enabled = true;
-        }
-        else
-        {
-            state = State.OFF;
         }
     }
 
-    // Update is called once per frame
+    //
+    //終了処理（寿命が尽きた）
+    //
+    public void End()
+    {
+        gameObject.SetActive(false);    //ノンアクティブ化
+        state = State.OFF;              //状態
+    }
+
+    //
+    // Update（流れている間）
+    //
     void Update()
     {
         if (state != State.ON)
@@ -79,25 +91,21 @@ public class Nagare : MonoBehaviour
             return;
         }
 
-        //寿命
+        //寿命カウント
         if (LifeTimer() == false)
         {
-            //自殺処理とか
-            state = State.OFF;
-            gameObject.SetActive(false);
+            End();  //終了処理
             return;
         }
-
-        //流れ弱くなるてきな？
-        nagareScalar *= 0.999f;
-
     }
 
+    //
     //寿命カウント
+    //
     bool LifeTimer()
     {
-        lifeTime -= Time.deltaTime;
-        if (lifeTime < 0)
+        lifeTimer -= Time.deltaTime;
+        if (lifeTimer < 0)
         {
             return false;
         }

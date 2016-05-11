@@ -17,24 +17,29 @@ public class NagareManager : MonoBehaviour
     private bool creatingFlg = false;
     private Vector3 nowMousePosition;
 
+    //Getメソッド
+    public Vector3 GetNagareObj(int index, int number) { return nagareArray[index, number].transform.position; }
+    public  bool    GetActivity(int index, int number) { return nagareArray[index, number].activeSelf; }
+
     //デバッグ用
     public DBGText_NagareArray dbgText0;
     public DBGText_NagareArray dbgText1;
     public DBGText_NagareArray dbgText2;
     public DBGText_NagareArray dbgText3;
 
-
     // Use this for initialization
     void Start()
     {
+        //流れオブジェクト配列初期化
         nagareArray = new GameObject[LimitNum, LimitSampling];
-
         for (int i = 0; i < nagareArray.GetLength(0); i++)
         {
             for (int j = 0; j < nagareArray.GetLength(1); j++)
             {
                 GameObject nagare = (GameObject)Instantiate(nagarePrefab, Vector3.zero, Quaternion.identity); //生成
                 nagareArray[i, j] = nagare;
+                nagareArray[i, j].GetComponent<Nagare>().index = i;
+                nagareArray[i, j].GetComponent<Nagare>().number = j;
             }
         }
     }
@@ -46,6 +51,7 @@ public class NagareManager : MonoBehaviour
         nowMousePosition.y = Input.mousePosition.y;
         nowMousePosition.z = Camera.main.transform.position.y;
 
+        //！！！！！デバッグ用！！！！！
         for (int i = 0; i < 32; i++)
         {
             dbgText0.state[i] = nagareArray[0, i].GetComponent<Nagare>().GetState();
@@ -64,19 +70,12 @@ public class NagareManager : MonoBehaviour
         nowIndex = FindAvailableArray();
         if (nowIndex == -1)
         {
-            Debug.Log(nowIndex.ToString());
             return false; //流れ制限超過
         }
 
-      
+        //生成
         Vector3 worldMousePosition = Camera.main.ScreenToWorldPoint(nowMousePosition);  //流れ生成開始
         nagareArray[nowIndex, 0].GetComponent<Nagare>().Initialize(worldMousePosition, Vector3.zero, 1.0f);
-
-        //GameObject nagare = (GameObject)Instantiate(nagarePrefab, worldMousePosition, Quaternion.identity); //生成
-        //nagare.GetComponent<Nagare>().Initialize(Vector3.zero, 1.0f);   //初期化
-
-        //配列にセット
-        //nagareArray[nowIndex, 0] = nagare;
 
         nowLength = 0;
         return creatingFlg = true;
@@ -87,51 +86,28 @@ public class NagareManager : MonoBehaviour
     //
     public void Creating()
     {
-        if (creatingFlg == false)
-        {
-            Debug.Log("CCCfalse");
-            return;
-        }
-        //Debug.Log(nowLength.ToString());
         //流れ長制限チェック
         if (nowLength >= LimitSampling - 1)
         {
-            Debug.Log("false");
             Activate();
             return;
         }
 
-        //Debug.Log("INDEX :" + nowIndex.ToString() + "LENGTH:" + nowLength.ToString());
-
         //サンプリング間隔チェック
         Vector3 worldMousePosition = Camera.main.ScreenToWorldPoint(nowMousePosition);  //スクリーン座標⇒ワールド座標
         Vector3 distance = worldMousePosition - nagareArray[nowIndex, nowLength].transform.position; //現在地点と前の生成地点との距離
-        int num = (int)(distance.magnitude / Interval_Sampling); //サンプリング数算出
+        int num = (int)(distance.magnitude / Interval_Sampling); //サンプリング数（生成数）算出
         if (num == 0)
         {
-            return;
+            return; //前回生成地点から生成要求地点までの間隔が近すぎる場合、生成しない。
         }
-
-        //Debug.Log("SamplingNum:" + num.ToString());
 
         //生成処理
         for (int i = 0; i < num; i++)
         {
             Vector3 setPoint = nagareArray[nowIndex, nowLength].transform.position + distance / num;    //生成地点算出
-            //GameObject nagare = (GameObject)Instantiate(nagarePrefab, setPoint, Quaternion.identity);   //生成
             Vector3 setVector = setPoint - nagareArray[nowIndex, nowLength].transform.position; //前の地点から生成地点に向かうベクトル
             nagareArray[nowIndex, nowLength + 1].GetComponent<Nagare>().Initialize(setPoint, setVector, 1.0f + nowLength * 0.025f); //初期化
-            //nagare.GetComponent<Nagare>().Initialize(setVector, 1.0f + nowLength * 0.1f);   //初期化
-
-            //Debug.Log(
-            //    "Mouse" + worldMousePosition.ToString() +
-            //    "Start" + nagareArray[nowIndex, nowLength].transform.position.ToString() +
-            //    "SetP" + setPoint.ToString()+
-            //    "SetV" + setVector.ToString()
-            //    );
-
-            //Vector3 dbg = distance / num;
-            //Debug.Log(dbg.ToString());
 
             nowLength++;
             if (nowLength >= LimitSampling - 1)
@@ -139,8 +115,6 @@ public class NagareManager : MonoBehaviour
                 Activate();
                 break;
             }
-
-            //Debug.Log("INDEX :" + nowIndex.ToString() + " LENGTH:" + nowLength.ToString());
         }
     }
 
@@ -149,8 +123,6 @@ public class NagareManager : MonoBehaviour
     //
     public void Activate()
     {
-        Debug.Log("MANAGER:"+creatingFlg.ToString());
-
         if (creatingFlg)
         {
             for (int i = 0; i < LimitSampling; i++)
@@ -158,7 +130,6 @@ public class NagareManager : MonoBehaviour
                 nagareArray[nowIndex, i].GetComponent<Nagare>().Activate();
             }
             creatingFlg = false;
-            Debug.Log("MANAGER:" + creatingFlg.ToString());
         }
     }
 
@@ -169,6 +140,11 @@ public class NagareManager : MonoBehaviour
     {
         for (int i = 0; i < LimitNum; i++)
         {
+            if(i == nowIndex)
+            {
+                continue;
+            }
+
             if (nagareArray[i, 0].GetComponent<Nagare>().GetState() == Nagare.State.OFF &&
                 nagareArray[i, LimitSampling - 1].GetComponent<Nagare>().GetState() == Nagare.State.OFF)
             {
@@ -181,4 +157,12 @@ public class NagareManager : MonoBehaviour
     //
     //
     //
+
+    public void OffColider(int index)
+    {
+        for(int i=0;i<LimitSampling;i++)
+        {
+            nagareArray[index, i].GetComponent<SphereCollider>().enabled = false;
+        }
+    }
 }
