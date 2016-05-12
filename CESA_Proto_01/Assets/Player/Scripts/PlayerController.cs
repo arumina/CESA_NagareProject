@@ -112,6 +112,7 @@ public class PlayerController : MonoBehaviour
     //流れに乗っている
     void Flowing()
     {
+        //現在のバグ　流れに乗ってる状態で壁にぶつけて急カーブすると　止まらなくなる
         //移動実行
         Move();
 
@@ -125,7 +126,15 @@ public class PlayerController : MonoBehaviour
         {
             //さらに次の流れObjに向かうセット
             nowRidingNumber++;
-            if (nowRidingNumber >= 32 || nagareManager.GetActivity(nowRidingIndex, nowRidingNumber))
+
+            
+            if(nowRidingNumber >=32)
+            {
+                //次の関数に32が入ると配列外なので変更
+                state = State.NEUTRAL;
+                return;
+            }
+            if ((false==nagareManager.GetActivity(nowRidingIndex, nowRidingNumber)))
             {
                 //流れの終端　OR　次の流れが非アクティブの場合
                 state = State.NEUTRAL;
@@ -163,6 +172,7 @@ public class PlayerController : MonoBehaviour
     {
         if (other.tag == "Nagare" && other.gameObject.activeSelf)
         {
+            Debug.Log("Hit"+other.ToString());
             state = State.FLOWING;
             nowRidingIndex = other.GetComponent<Nagare>().index;
             nowRidingNumber = other.GetComponent<Nagare>().number;

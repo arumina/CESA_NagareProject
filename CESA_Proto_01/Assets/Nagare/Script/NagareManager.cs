@@ -22,7 +22,11 @@ public class NagareManager : MonoBehaviour
 
     //Getメソッド
     public Vector3 GetNagareObj(int index, int number) { return nagareArray[index, number].transform.position; }
-    public  bool    GetActivity(int index, int number) { return nagareArray[index, number].activeSelf; }
+    public  bool    GetActivity(int index, int number) 
+    {
+        //Debug.Log("index: "+index.ToString()+"number:"+number.ToString());//Error検出用
+        return nagareArray[index, number].activeSelf;
+    }
 
     //デバッグ用
     public DBGText_NagareArray dbgText0;
