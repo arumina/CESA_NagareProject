@@ -17,6 +17,9 @@ public class NagareManager : MonoBehaviour
     private bool creatingFlg = false;
     private Vector3 nowMousePosition;
 
+    //Init用
+    private Vector3 initPosition=new Vector3(1000,1000,1000);
+
     //Getメソッド
     public Vector3 GetNagareObj(int index, int number) { return nagareArray[index, number].transform.position; }
     public  bool    GetActivity(int index, int number) { return nagareArray[index, number].activeSelf; }
@@ -30,6 +33,7 @@ public class NagareManager : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        
         //流れオブジェクト配列初期化
         nagareArray = new GameObject[LimitNum, LimitSampling];
         for (int i = 0; i < nagareArray.GetLength(0); i++)
@@ -38,6 +42,7 @@ public class NagareManager : MonoBehaviour
             {
                 GameObject nagare = (GameObject)Instantiate(nagarePrefab, Vector3.zero, Quaternion.identity); //生成
                 nagareArray[i, j] = nagare;
+                nagareArray[i, j].transform.position = initPosition;
                 nagareArray[i, j].GetComponent<Nagare>().index = i;
                 nagareArray[i, j].GetComponent<Nagare>().number = j;
             }
@@ -72,7 +77,7 @@ public class NagareManager : MonoBehaviour
         {
             return false; //流れ制限超過
         }
-
+        Debug.Log(nowIndex.ToString());
         //生成
         Vector3 worldMousePosition = Camera.main.ScreenToWorldPoint(nowMousePosition);  //流れ生成開始
         nagareArray[nowIndex, 0].GetComponent<Nagare>().Initialize(worldMousePosition, Vector3.zero, 1.0f);
@@ -140,6 +145,7 @@ public class NagareManager : MonoBehaviour
     {
         for (int i = 0; i < LimitNum; i++)
         {
+            //Debug.Log(nowIndex.ToString());
             if(i == nowIndex)
             {
                 continue;
